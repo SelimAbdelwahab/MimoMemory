@@ -1,0 +1,19 @@
+# CMake build directories and generated files
+/build/
+/build-*/
+/cmake-build-*/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/CTestTestfile.cmake
+/Testing/
+/install_manifest.txt
+/compile_commands.json
+
+# Local editor settings and caches
+/.cache/
+/.idea/
+/.vscode/
+
+# macOS metadata
+.DS_Store

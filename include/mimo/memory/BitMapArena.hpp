@@ -2,7 +2,9 @@
 
 #include <cstddef>
 #include <climits>
+#include <limits>
 #include <memory>
+#include <new>
 #include <utility>
 
 namespace mimo::memory
@@ -43,23 +45,23 @@ private:
 
 template<typename T>
 BitMapArena<T>::BitMapArena(const std::size_t capacity)
-    : m_buffer(static_cast<T*>(operator new(
-        capacity * sizeof(T),
-        std::align_val_t{alignof(T)})))
+    : m_buffer(nullptr)
     , m_capacity(capacity)
     , m_bytes(capacity / CHAR_BIT + (capacity % CHAR_BIT != 0))
-    , m_book(new std::byte[m_bytes]{})
+    , m_book(nullptr)
 {
-    if (capacity > SIZE_MAX / sizeof(T))
+    if (capacity > std::numeric_limits<std::size_t>::max() / sizeof(T))
         throw std::bad_alloc();
 
-    // Mark trailing bits as used
-    for (std::size_t i = capacity; i < m_bytes * CHAR_BIT; ++i)
-    {
-        const std::size_t index = i / CHAR_BIT;
-        const std::size_t offset = i % CHAR_BIT;
+    auto book = std::make_unique<std::byte[]>(m_bytes);
+    m_buffer = static_cast<T*>(operator new(capacity * sizeof(T), std::align_val_t{alignof(T)}));
+    m_book = book.release();
 
-        m_book[index] |= static_cast<std::byte>(0b1 << offset);
+    // Mark trailing bits as used
+    if (const auto remainder = capacity % CHAR_BIT; remainder != 0)
+    {
+        for (std::size_t offset = remainder; offset < CHAR_BIT; ++offset)
+            m_book[m_bytes - 1] |= static_cast<std::byte>(1) << offset;
     }
 }
 
@@ -109,7 +111,6 @@ void BitMapArena<T>::dealloc(T* ptr) noexcept
     m_book[byteIndex] &= ~(static_cast<std::byte>(1) << bitIndex);
 }
 
-// template<typename T, typename... Args>
 template<typename T>
 template<typename... Args>
 T* BitMapArena<T>::create(Args&&... args)
@@ -118,8 +119,15 @@ T* BitMapArena<T>::create(Args&&... args)
     if (ptr == nullptr)
         return nullptr;
 
-    std::construct_at(ptr, std::forward<Args>(args)...);
-    return static_cast<T*>(ptr);
+    try
+    {
+        return std::construct_at(ptr, std::forward<Args>(args)...);
+    }
+    catch (...)
+    {
+        dealloc(ptr);
+        throw;
+    }
 }
 
 template<typename T>

@@ -8,7 +8,6 @@
 /CTestTestfile.cmake
 /Testing/
 /install_manifest.txt
-/compile_commands.json
 
 # Local editor settings and caches
 /.cache/

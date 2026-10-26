@@ -20,7 +20,9 @@ if(BUILD_TESTING)
         FetchContent_MakeAvailable(googletest)
     endif()
 
-    add_executable(BitMapArenaTests tests/BitMapArenaTests.cpp)
+    add_executable(BitMapArenaTests
+        tests/BitMapArenaTests.cpp
+        tests/HierarchicalBitMapArenaTests.cpp)
     target_link_libraries(BitMapArenaTests PRIVATE Mimo.Memory GTest::gtest_main)
     include(GoogleTest)
     gtest_discover_tests(BitMapArenaTests PROPERTIES TIMEOUT 30)
@@ -28,6 +30,7 @@ endif()
 
 option(MIMO_BUILD_BENCHMARKS "Build standalone memory allocation benchmarks" OFF)
 if(MIMO_BUILD_BENCHMARKS)
-    add_executable(BitMapArenaBenchmarks benchmarks/BitMapArenaBenchmarks.cpp)
-    target_link_libraries(BitMapArenaBenchmarks PRIVATE Mimo.Memory)
+    add_executable(Benchmarks benchmarks/Benchmark.cpp)
+    set_target_properties(Benchmarks PROPERTIES OUTPUT_NAME benchmark)
+    target_link_libraries(Benchmarks PRIVATE Mimo.Memory)
 endif()

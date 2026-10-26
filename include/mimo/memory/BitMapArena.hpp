@@ -17,11 +17,11 @@ public:
     ~BitMapArena();
 
     BitMapArena() = delete;
-    BitMapArena(const BitMapArena<T>&) = delete;
-    BitMapArena(BitMapArena<T>&&) = delete;
+    BitMapArena(const BitMapArena&) = delete;
+    BitMapArena(BitMapArena&&) = delete;
 
-    BitMapArena<T>& operator=(const BitMapArena<T>&) = delete;
-    BitMapArena<T>& operator=(BitMapArena<T>&&) = delete;
+    BitMapArena& operator=(const BitMapArena&) = delete;
+    BitMapArena& operator=(BitMapArena&&) = delete;
 
     void destroy(T* ptr) noexcept;
 
